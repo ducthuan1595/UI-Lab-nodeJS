@@ -1,0 +1,26 @@
+.cart {
+  text-align: center;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-around;
+  text-align: center;
+  padding: 12px 0;
+  margin-bottom: 8px;
+}
+
+.order {
+  display: flex;
+  padding-left: 20px;
+}
+
+.order-item {
+  text-align: center;
+}
+
+.order-btn {
+  margin-top: 1rem;
+  text-align: center;
+
+}

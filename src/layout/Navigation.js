@@ -1,41 +1,73 @@
-import { NavLink } from "react-router-dom"
-
+import { NavLink } from "react-router-dom";
+import { context } from "../store/store";
+import { useContext } from "react";
+import { url } from "../App";
 
 const Navigation = () => {
+  const { user, setUser } = useContext(context);
+
+  const handleLogout = async () => {
+    const res = await fetch(`${url}logout`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${user.token}`,
+      },
+    });
+    const data = await res.json();
+    if (data) {
+      localStorage.removeItem('userCurrent');
+      setUser(null);
+    }
+  };
+
   return (
-    <main className='main-header'>
-      <nav className='main-header__nav'>
+    <main className="main-header">
+      <nav className="main-header__nav">
         <ul className="main-header__item-list">
-          <li className='main-header__item'>
-            <NavLink to='/'>Shop</NavLink>
+          <li className="main-header__item">
+            <NavLink to="/">Shop</NavLink>
           </li>
-          <li className='main-header__item'>
-            <NavLink to='/product'>Products</NavLink>
+          <li className="main-header__item">
+            <NavLink to="/product">Products</NavLink>
           </li>
-          <li className='main-header__item'>
-            <NavLink to='/cart'>Cart</NavLink>
-          </li>
-          <li className='main-header__item'>
-            <NavLink to='/order'>Orders</NavLink>
-          </li>
-          <li className='main-header__item'>
-            <NavLink to='/add-product'>Add product</NavLink>
-          </li>
-          <li className='main-header__item'>
-            <NavLink to='/admin'>Admin Products</NavLink>
-          </li>
+          {user && (
+            <>
+              <li className="main-header__item">
+                <NavLink to="/cart">Cart</NavLink>
+              </li>
+              <li className="main-header__item">
+                <NavLink to="/order">Orders</NavLink>
+              </li>
+              <li className="main-header__item">
+                <NavLink to="/add-product">Add product</NavLink>
+              </li>
+              <li className="main-header__item">
+                <NavLink to="/admin">Admin Products</NavLink>
+              </li>
+            </>
+          )}
         </ul>
-        <ul className="main-header__item-list">
-          <li className='main-header__item'>
-            <NavLink to='/form/login'>Login</NavLink>
-          </li>
-          <li className='main-header__item'>
-            <NavLink to='/form/signup'>Signup</NavLink>
-          </li>
-        </ul>
+        {user ? (
+          <div className="user-info">
+            <div className="user-info_item">{user.email}</div>
+            <div className="user-info_item" onClick={handleLogout}>
+              Logout
+            </div>
+          </div>
+        ) : (
+          <ul className="main-header__item-list">
+            <li className="main-header__item">
+              <NavLink to="/form/login">Login</NavLink>
+            </li>
+            <li className="main-header__item">
+              <NavLink to="/form/signup">Signup</NavLink>
+            </li>
+          </ul>
+        )}
       </nav>
     </main>
-  )
+  );
 };
 
 export default Navigation;

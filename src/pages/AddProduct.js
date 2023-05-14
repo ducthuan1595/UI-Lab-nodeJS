@@ -14,10 +14,10 @@ console.log('edit', editProduct);
   useEffect(()=> {
     if(editProduct) {
       return setProduct({
-        title: editProduct.product.title,
-        imageUrl: editProduct.product.imageUrl,
-        price: editProduct.product.price,
-        description: editProduct.product.description
+        title: editProduct?.product?.title,
+        imageUrl: editProduct?.product?.imageUrl,
+        price: editProduct?.product?.price,
+        description: editProduct?.product?.description
       })
     }
   }, [editProduct])
@@ -33,8 +33,8 @@ console.log('edit', editProduct);
     e.preventDefault();
 
     if(editProduct) {
-      const id = editProduct.product._id;
-      console.log('edit-id-add', id)
+      console.log('edit-id-add')
+      const id = editProduct?.product?._id;
       product.id = id;
       onEditProduct(product);
       navigate("/");

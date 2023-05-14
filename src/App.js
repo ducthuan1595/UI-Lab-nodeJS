@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
 
 import Navigation from './layout/Navigation';
@@ -9,6 +9,8 @@ import Detail from './pages/Detail';
 import Admin from './pages/Admin';
 import OrderPage from './pages/OrderPage';
 import Form from './components/Forms';
+import { context } from './store/store';
+import refreshToken from './util/refreshToken';
 
 export const url = 'http://localhost:5000/';
 
@@ -19,6 +21,9 @@ function App() {
   const [editProduct, setEditProduct] = useState(null);
   const [cart, setCart] = useState(null)
   const [order, setOrder] = useState(null)
+
+  const { user, setUser } = useContext(context);
+  console.log(user);
 
   const getProduct = async() => {
     try{
@@ -56,7 +61,8 @@ function App() {
       const res = await fetch(`${url}edit/${product.id}`, {
         method: 'POST',
         headers: {
-          'Content-type': 'application/json'
+          'Authorization': `Bearer ${user.token}`,
+          'Content-type': 'application/json',
         },
         body: JSON.stringify(product)
       });
@@ -71,6 +77,7 @@ function App() {
       const res = await fetch(`${url}`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${user.token}`,
           'Content-type': 'application/json'
         },
         body: JSON.stringify(product)
@@ -92,7 +99,8 @@ function App() {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`,
       },
       body: JSON.stringify({id: id})
     });
@@ -116,7 +124,10 @@ function App() {
 
   const getCart = async() => {
     try{
-      const res = await fetch(`${url}get-cart`);
+      const res = await fetch(`${url}get-cart`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
       const data = await res.json();
       if(data.message !== 'ok') {
         return;
@@ -142,11 +153,16 @@ function App() {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${user.token}`,
           },
           body: JSON.stringify({id: id})
         })
-        console.log('add cart', id)
+        // console.log('add cart', id)
+        if(res.status === 403) {
+          console.log('ok');
+          await refreshToken(user, setUser);
+        }
       }catch(err) {
         console.log(err.message)
       }
@@ -156,6 +172,7 @@ function App() {
   };
 
   useEffect(()=> {
+    getProduct();
     getCart();
   }, []);
 
@@ -163,7 +180,8 @@ function App() {
     await fetch(`${url}delete-cart`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${user.token}`,
       },
       body: JSON.stringify({ id: id})
     })
@@ -176,7 +194,8 @@ function App() {
       await fetch(`${url}post-order`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${user.token}`,
         },
       });
     }
@@ -187,7 +206,10 @@ function App() {
 
   const getOrder = async() => {
     try{
-      const res = await fetch(`${url}get-orders`);
+      const res = await fetch(`${url}get-orders`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
       const data = await res.json();
       if(data.message !== 'ok') {
         return;
@@ -204,7 +226,7 @@ function App() {
 
   useEffect(() => {
     getProduct();
-  }, [product])
+  }, [product, user])
 
   // get detail id from home page
   const onDetail = (productId) => {
@@ -215,13 +237,15 @@ function App() {
   const onEdit = async(id) => {
     try{
       console.log('id-edit', id)
-      const res = await fetch(`${url}get-edit/${id}`);
+      const res = await fetch(`${url}get-edit/${id}`, {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${user.token}` }
+      });
       if(!res.message === 'ok') {
         return ;
       }
       const data = await res.json();
-      if(data) {
-        console.log('get-edit', data)
+      if(data && typeof data !== 'string') {
         setEditProduct(data);
       }
     }catch(err) {

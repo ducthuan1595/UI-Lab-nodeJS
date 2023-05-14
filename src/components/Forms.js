@@ -1,10 +1,13 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { url } from "../App";
 import { useNavigate, useParams } from "react-router-dom";
+import { context } from "../store/store";
 
 const Form = () => {
   const navigate = useNavigate();
   const { params } = useParams();
+  const { setUser } = useContext(context);
+
   const [valueInput, setValueInput] = useState({
     email: '',
     password: '',
@@ -17,14 +20,6 @@ const Form = () => {
     cpState[name] = e.target.value;
     setValueInput(cpState);
   };
-
-  
-  const getLogin = async() => {
-    const res = await fetch(`${url}get-login`)
-    const data = await res.json();
-    console.log(data);
-  };
-  
 
   const handleSubmit = async(e) => {
     e.preventDefault();
@@ -41,19 +36,25 @@ const Form = () => {
         if(data.message !== 'ok') {
           return setErrMessage('Information invalid!')
         };
-        return navigate('/login');
+        setValueInput({
+          email: '',
+          password: ''
+        })
+        return navigate('/form/login');
+      } else {
+        const res = await fetch(`${url}login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ email: valueInput.email, password: valueInput.password })
+        });
+        const data = await res.json();
+        if(data.message !== 'ok') return setErrMessage('Information invalid!')
+        localStorage.setItem('userCurrent', JSON.stringify(data));
+        setUser(data);
+        navigate('/');
       }
-      const res = await fetch(`${url}login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email: valueInput.email, password: valueInput.password })
-      });
-      const data = await res.json();
-      if(data.message !== 'ok') return setErrMessage('Information invalid!')
-      // navigate('/');
-      getLogin();
     }catch(err) {
       console.log(err);
     }
@@ -69,7 +70,7 @@ const Form = () => {
         </div>
         <div className='form-control'>
         <label>Password</label>
-        <input type="password" id="password" name="password" valueInput={valueInput.password} onChange={(e) =>handleChangeInput(e, 'password')} />
+        <input type="password" id="password" name="password" value={valueInput.password} onChange={(e) =>handleChangeInput(e, 'password')} />
         </div>
         <div className='error-message'>{errMessage}</div>
         <button onClick={handleSubmit} type='submit' className="btn">{params === 'login' ? 'Login' : 'Signup'}</button>

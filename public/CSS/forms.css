@@ -31,3 +31,15 @@
   color: red;
   font-size: 12px;
 }
+
+.user-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #fff;
+}
+
+.user-info_item + .user-info_item {
+  margin-left: 20px;
+  cursor: pointer;
+}

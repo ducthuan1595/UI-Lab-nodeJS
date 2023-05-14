@@ -15,7 +15,7 @@ export default function HomePage ({ products, onCart, onDetail }) {
   return (
     <main>
       <div className='grid'>
-        {products.length > 0 && products.map((item, index) => {
+        {products?.length > 0 && products.map((item, index) => {
           return (
             <div className='card' key={index}>
               <div className='card__header'>

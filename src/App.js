@@ -66,6 +66,8 @@ function App() {
         },
         body: JSON.stringify(product)
       });
+      const data = await res.json();
+      if(data.message === 'Token is not valid') return refreshToken(user, setUser);
       await getProduct();
     }catch(err) {
       console.log(err)
@@ -82,7 +84,8 @@ function App() {
         },
         body: JSON.stringify(product)
       })
-      console.log('add new product', product)
+      const data = await res.json();
+      if(data.message === 'Token is not valid') return refreshToken(user, setUser);
     }catch(err) {
       console.log(err)
     }
@@ -105,7 +108,8 @@ function App() {
       body: JSON.stringify({id: id})
     });
     const data = await res.json()
-    console.log('data-delete', data)
+    if(data.message === 'Token is not valid') return refreshToken(user, setUser);
+
   };
   
   // delete product
@@ -132,6 +136,7 @@ function App() {
       if(data.message !== 'ok') {
         return;
       }
+      if(data.message === 'Token is not valid') return refreshToken(user, setUser);
       // console.log('get-cart', data)
       setCart(data)
     }
@@ -157,12 +162,10 @@ function App() {
             'Authorization': `Bearer ${user.token}`,
           },
           body: JSON.stringify({id: id})
-        })
-        // console.log('add cart', id)
-        if(res.status === 403) {
-          console.log('ok');
-          await refreshToken(user, setUser);
-        }
+        });
+        const data = await res.json();
+        console.log(data);
+        if(data.message === 'Token is not valid') return refreshToken(user, setUser);
       }catch(err) {
         console.log(err.message)
       }
@@ -177,7 +180,7 @@ function App() {
   }, []);
 
   const onDeleteCart = async(id) => {
-    await fetch(`${url}delete-cart`, {
+    const res = await fetch(`${url}delete-cart`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -185,19 +188,23 @@ function App() {
       },
       body: JSON.stringify({ id: id})
     })
+    const data = await res.json();
+    if(data.message === 'Token is not valid') return refreshToken(user, setUser);
     await getCart();
   };
 
   // ORDER
   const onOrder = async() => {
     const postOrder = async() => {
-      await fetch(`${url}post-order`, {
+      const res = await fetch(`${url}post-order`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${user.token}`,
         },
       });
+      const data = await res.json();
+      if(data.message === 'Token is not valid') return refreshToken(user, setUser);
     }
     await postOrder();
     await getOrder();
@@ -213,7 +220,8 @@ function App() {
       const data = await res.json();
       if(data.message !== 'ok') {
         return;
-      }
+      };
+      if(data.message === 'Token is not valid') return refreshToken(user, setUser);
       setOrder(data)
       // console.log('data-order-item', data)
     }catch(err) {

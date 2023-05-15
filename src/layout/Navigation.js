@@ -2,22 +2,31 @@ import { NavLink } from "react-router-dom";
 import { context } from "../store/store";
 import { useContext } from "react";
 import { url } from "../App";
+import refreshToken from "../util/refreshToken";
 
 const Navigation = () => {
   const { user, setUser } = useContext(context);
 
   const handleLogout = async () => {
-    const res = await fetch(`${url}logout`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-    });
-    const data = await res.json();
-    if (data) {
-      localStorage.removeItem('userCurrent');
-      setUser(null);
+    try{
+      const res = await fetch(`${url}logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${user.refreshToken}`,
+        },
+      });
+      const data = await res.json();
+      if(data.message !== 'ok') {
+        console.log('ok');
+        await refreshToken(user, setUser);
+      }
+      if (data.message === 'ok') {
+        localStorage.removeItem('userCurrent');
+        setUser(null);
+      }
+    }catch(err) {
+      console.log(err);
     }
   };
 

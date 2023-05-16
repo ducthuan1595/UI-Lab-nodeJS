@@ -1,46 +1,90 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { context } from "../store/store";
+import { url } from "../App";
+import refreshToken from "../util/refreshToken";
 
-export default function AddProduct({ onProduct, editProduct, onEditProduct }) {
+export default function AddProduct({ onProduct, editProduct, getProduct }) {
   const [product, setProduct] = useState({
     title: "",
     imageUrl: "",
     price: "",
     description: "",
   });
-
+  const [messageError, setMessageError] = useState('');
+  
+  const { user, setUser } = useContext(context);
   const navigate = useNavigate();
-console.log('edit', editProduct);
-  useEffect(()=> {
-    if(editProduct) {
+  console.log("edit", editProduct);
+  useEffect(() => {
+    if (editProduct) {
       return setProduct({
         title: editProduct?.product?.title,
         imageUrl: editProduct?.product?.imageUrl,
         price: editProduct?.product?.price,
-        description: editProduct?.product?.description
-      })
+        description: editProduct?.product?.description,
+      });
     }
-  }, [editProduct])
+  }, [editProduct]);
 
   const handleChangeInput = (e, name) => {
+    setMessageError('');
     let stateCopy = { ...product };
     stateCopy[name] = e.target.value;
 
     setProduct(stateCopy);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if(editProduct) {
-      console.log('edit-id-add')
-      const id = editProduct?.product?._id;
-      product.id = id;
-      onEditProduct(product);
-      navigate("/");
-    }else {
+    if (editProduct) {
+      try {
+        const id = editProduct?.product?._id;
+        product.id = id;
+        const res = await fetch(`${url}edit/${id}`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+            "Content-type": "application/json",
+          },
+          body: JSON.stringify(product),
+        });
+        const data = await res.json();
+        if(data.message !== 'ok') {
+          return setMessageError('Value invalid!');
+        }
+        if (data.message === "Token is not valid")
+          return refreshToken(user, setUser);
+        if(data.message === 'ok') {
+          getProduct();
+          navigate("/");
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    } else {
       onProduct(product);
-      navigate("/");
+    }
+  };
+
+  // save edit product
+  const onEditProduct = async (product) => {
+    try {
+      console.log("post-edit", product);
+      const res = await fetch(`${url}edit/${product.id}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+          "Content-type": "application/json",
+        },
+        body: JSON.stringify(product),
+      });
+      const data = await res.json();
+      if (data.message === "Token is not valid")
+        return refreshToken(user, setUser);
+    } catch (err) {
+      console.log(err);
     }
   };
 
@@ -51,7 +95,7 @@ console.log('edit', editProduct);
           <label>Title</label>
           <input
             type="text"
-            name="titles"
+            name="title"
             value={product.title}
             onChange={(e) => handleChangeInput(e, "title")}
           />
@@ -84,7 +128,10 @@ console.log('edit', editProduct);
             onChange={(e) => handleChangeInput(e, "description")}
           ></textarea>
         </div>
-        <button className='btn' type="submit">{editProduct ? 'Edit' : 'Add Product'}</button>
+        <div className='error-message'>{messageError}</div>
+        <button className="btn" type="submit">
+          {editProduct ? "Edit" : "Add Product"}
+        </button>
       </form>
     </main>
   );

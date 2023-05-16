@@ -16,7 +16,6 @@ export const url = 'http://localhost:5000/';
 
 function App() {
   const [products, setProducts]  = useState([]);
-  const [product, setProduct] = useState({});
   const [detailProduct, setDetailProduct] = useState({});
   const [editProduct, setEditProduct] = useState(null);
   const [cart, setCart] = useState(null)
@@ -54,47 +53,26 @@ function App() {
     }
   };
 
-  // save edit product
-  const onEditProduct = async(product) => {
+  const onProduct = async(product) => {
     try{
-      console.log('post-edit', product)
-      const res = await fetch(`${url}edit/${product.id}`, {
+      console.log('add-product', product);
+      const res = await fetch(`${url}`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${user.token}`,
           'Content-type': 'application/json',
+          'Authorization': `Bearer ${user.token}`,
         },
         body: JSON.stringify(product)
-      });
+      })
       const data = await res.json();
+      if(data.message !== 'ok') return 'err';
+      console.log('data-post-product', data);
       if(data.message === 'Token is not valid') return refreshToken(user, setUser);
       await getProduct();
     }catch(err) {
       console.log(err)
     }
-  };
-
-  const postProduct = async() => {
-    try{
-      const res = await fetch(`${url}`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${user.token}`,
-          'Content-type': 'application/json'
-        },
-        body: JSON.stringify(product)
-      })
-      const data = await res.json();
-      if(data.message === 'Token is not valid') return refreshToken(user, setUser);
-    }catch(err) {
-      console.log(err)
-    }
   }
-  useEffect(()=> {
-    if(Object.keys(product).length !== 0) {
-      postProduct();
-    }
-  }, [product]);
 
   // delete product
   const deleteProduct = async(id) => {
@@ -117,14 +95,6 @@ function App() {
     await deleteProduct(id);
     await getProduct();
   }
-
-  // add product
-  const onProduct = async(product) => {
-    if(Object.keys(product).length !== 0) {
-      await setProduct(product);
-      await getProduct();
-    }
-  };
 
   const getCart = async() => {
     try{
@@ -234,7 +204,7 @@ function App() {
 
   useEffect(() => {
     getProduct();
-  }, [product, user])
+  }, [user])
 
   // get detail id from home page
   const onDetail = (productId) => {
@@ -281,7 +251,7 @@ function App() {
       <Routes>
         <Route path='/' element={<HomePage products={products} onCart={onCart} onDetail={onDetail} />} />
         <Route path='/product' element={<HomePage products={products} onCart={onCart} onDetail={onDetail} />} />
-        <Route path='/edit-product' element={<AddProduct editProduct={editProduct} onEditProduct={onEditProduct} />} />
+        <Route path='/edit-product' element={<AddProduct editProduct={editProduct} getProduct={getProduct} />} />
         <Route path='/add-product' element={<AddProduct onProduct={onProduct} />} />
         <Route path='/order' element={<OrderPage onGetOrder={onGetOrder} />} />
         <Route path='/cart' element={<Cart onGetCart={onGetCart} onDelete={onDeleteCart} onOrder={onOrder} />} />

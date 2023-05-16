@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { context } from "../store/store";
 import { useContext } from "react";
 import { url } from "../App";
@@ -6,6 +6,7 @@ import refreshToken from "../util/refreshToken";
 
 const Navigation = () => {
   const { user, setUser } = useContext(context);
+  const navigate = useNavigate();
 
   const handleLogout = async () => {
     try{
@@ -24,6 +25,7 @@ const Navigation = () => {
       if (data.message === 'ok') {
         localStorage.removeItem('userCurrent');
         setUser(null);
+        navigate('/form/login')
       }
     }catch(err) {
       console.log(err);

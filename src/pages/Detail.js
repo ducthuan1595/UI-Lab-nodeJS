@@ -1,9 +1,11 @@
+import { useContext } from "react";
+import { context } from "../store/store";
+
 const Detail = ({ fetchDetailProduct, onCart }) => {
   const product = fetchDetailProduct();
-
+  const { user } = useContext(context);
   const handleAddCart = (id) => {
     onCart(id);
-
   };
 
   return (
@@ -22,12 +24,14 @@ const Detail = ({ fetchDetailProduct, onCart }) => {
               <p>{product.description}</p>
             </div>
             <div className="card__actions">
-              <button
-                className="btn"
-                onClick={handleAddCart.bind(null, product._id)}
-              >
-                Add to Cart
-              </button>
+              {user && (
+                <button
+                  className="btn"
+                  onClick={handleAddCart.bind(null, product._id)}
+                >
+                  Add to Cart
+                </button>
+              )}
             </div>
           </div>
         )}

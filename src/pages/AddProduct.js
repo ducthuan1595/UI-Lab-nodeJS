@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { context } from "../store/store";
 import { url } from "../App";
 import refreshToken from "../util/refreshToken";
+import CommonUtils from "../util/CommonUtils";
 
 export default function AddProduct({ onProduct, editProduct, getProduct }) {
   const [product, setProduct] = useState({
@@ -26,6 +27,19 @@ export default function AddProduct({ onProduct, editProduct, getProduct }) {
       });
     }
   }, [editProduct]);
+
+  const handleChangeFile = async(e) => {
+    const file = e.target.files[0];
+    if(file) {
+      // const base64 = await CommonUtils.getBase64(file);
+      // const url = URL.createObjectURL(file);
+  
+      const cpState= {...product}
+      cpState.imageUrl = file;
+
+      setProduct(cpState);
+    }
+  }
 
   const handleChangeInput = (e, name) => {
     setMessageError('');
@@ -65,32 +79,13 @@ export default function AddProduct({ onProduct, editProduct, getProduct }) {
       }
     } else {
       onProduct(product);
-    }
-  };
-
-  // save edit product
-  const onEditProduct = async (product) => {
-    try {
-      console.log("post-edit", product);
-      const res = await fetch(`${url}edit/${product.id}`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${user.token}`,
-          "Content-type": "application/json",
-        },
-        body: JSON.stringify(product),
-      });
-      const data = await res.json();
-      if (data.message === "Token is not valid")
-        return refreshToken(user, setUser);
-    } catch (err) {
-      console.log(err);
+      navigate("/");
     }
   };
 
   return (
     <main>
-      <form className="product-form" onSubmit={handleSubmit}>
+      <form className="product-form" onSubmit={handleSubmit} encType="multipart/form-data">
         <div className="form-control">
           <label>Title</label>
           <input
@@ -101,12 +96,11 @@ export default function AddProduct({ onProduct, editProduct, getProduct }) {
           />
         </div>
         <div className="form-control">
-          <label>Image URL</label>
+          <label>Image</label>
           <input
-            type="text"
+            type="file"
             name="imageUrl"
-            value={product.imageUrl}
-            onChange={(e) => handleChangeInput(e, "imageUrl")}
+            onChange={handleChangeFile}
           />
         </div>
         <div className="form-control">

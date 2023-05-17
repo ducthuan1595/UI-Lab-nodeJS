@@ -24,7 +24,7 @@ const Cart = ({ onGetCart, onDelete, onOrder }) => {
             console.log('cart', cart)
             return (
               <div key={cart._id} className="cart-item card">
-                <div>{cart.productId.title}</div>
+                <div>{cart.productId?.title}</div>
                 <div>Quantity: {cart.quantity}</div>
                 <button className='btn' onClick={handleDelete.bind(null, cart._id)}>Delete</button>
               </div>

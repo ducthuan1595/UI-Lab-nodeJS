@@ -22,7 +22,6 @@ export default function HomePage ({ products, onCart, onDetail }) {
         {products?.length > 0 && products.map((item, index) => {
           // const base64 = btoa(String.fromCharCode.apply(null, new Uint8Array(item.imageUrl)))
           const base64 = Buffer.from(item.imageUrl).toString('base64')
-          console.log(base64);
           return (
             <div className='card' key={index}>
               <div className='card__header'>

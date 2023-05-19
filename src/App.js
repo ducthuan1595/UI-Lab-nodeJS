@@ -23,14 +23,13 @@ function App() {
   const [order, setOrder] = useState(null);
 
   const { user, setUser } = useContext(context);
-  console.log(user);
+  // console.log(user);
 
   const getProduct = async () => {
     try {
       const res = await fetch(`${url}`);
       const data = await res.json();
       if (data) {
-        console.log(data.products);
         setProducts(data.products);
       }
     } catch (err) {
@@ -55,54 +54,60 @@ function App() {
   };
 
   const onProduct = async (product) => {
-    try {
-      // console.log('add-product', product);
-      // const fd = new FormData();
-      // console.log('file', fd);
-      // fd.append("file", product.imageUrl);
-      // const res = await fetch(`${url}`, {
-      //   method: 'POST',
-      //   body: fd
-      // })
+    // let data;
+    const fetchRequest = async (token) => {
       const formdata = new FormData();
       formdata.append("title", product.title);
       formdata.append("price", product.price);
-      formdata.append(
-        "imageUrl", product.imageUrl);
+      formdata.append("imageUrl", product.imageUrl);
       formdata.append("description", product.description);
-
       const res = {
         method: "POST",
+        headers: {
+          Authorization: `Bearer ${token ? token : user.token}`,
+        },
         body: formdata,
       };
-
       const response = await fetch(`${url}`, res);
-      const data = await response.json();
-      console.log('add', data);
-      if (data.message === "ok") {
-        await getProduct();
+      let data = await response.json();
+      return data;
+    };
+
+    const checkRequest = async () => {
+      const data = await fetchRequest();
+      if (data.message === "Token is not valid") {
+        const token = await refreshToken(user, setUser);
+        await fetchRequest(token);
       }
-      if (data.message === "Token is not valid")
-      return refreshToken(user, setUser);
-    } catch (err) {
-      console.log(err);
-    }
+      getProduct();
+    };
+    checkRequest();
   };
 
   // delete product
   const deleteProduct = async (id) => {
-    const res = await fetch(`${url}delete`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({ id: id }),
-    });
-    const data = await res.json();
-    if (data.message === "Token is not valid")
-      return refreshToken(user, setUser);
+    const fetchRequest = async (token) => {
+      const res = await fetch(`${url}delete`, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token ? token : user.token}`,
+        },
+        body: JSON.stringify({ id: id }),
+      });
+      const data = await res.json();
+      return data;
+    };
+    const checkRequest = async () => {
+      const data = await fetchRequest();
+      if (data.message === "Token is not valid") {
+        const token = await refreshToken(user, setUser);
+        await fetchRequest(token);
+      }
+      getProduct();
+    };
+    checkRequest();
   };
 
   // delete product
@@ -113,18 +118,25 @@ function App() {
 
   const getCart = async () => {
     try {
-      const res = await fetch(`${url}get-cart`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      const data = await res.json();
-      if (data.message !== "ok") {
-        return;
-      }
-      if (data.message === "Token is not valid")
-        return refreshToken(user, setUser);
-      // console.log('get-cart', data)
-      setCart(data);
+      const fetchRequest = async (token) => {
+        const res = await fetch(`${url}get-cart`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token ? token : user.token}` },
+        });
+        const data = await res.json();
+        return data;
+      };
+      const checkRequest = async () => {
+        const data = await fetchRequest();
+        if (data.message === "Token is not valid") {
+          const token = await refreshToken(user, setUser);
+          await fetchRequest(token);
+        }
+        if(data.message === 'ok') {
+          return setCart(data);
+        } 
+      };
+      checkRequest();
     } catch (err) {
       console.log(err.message);
     }
@@ -137,92 +149,123 @@ function App() {
   };
   // add product to cart with id
   const onCart = async (id) => {
-    const postCart = async () => {
-      try {
+    try {
+      const postCart = async (token) => {
         const res = await fetch(`${url}add-cart`, {
           method: "POST",
           headers: {
-            Accept: "application/json",
+            // Accept: "application/json",
             "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
+            Authorization: `Bearer ${token ? token : user.token}`,
           },
           body: JSON.stringify({ id: id }),
         });
         const data = await res.json();
-        console.log(data);
-        if (data.message === "Token is not valid")
-          return refreshToken(user, setUser);
-      } catch (err) {
-        console.log(err.message);
-      }
-    };
-    await postCart();
-    await getCart();
+        return data;
+      };
+      const checkRequest = async () => {
+        const data = await postCart();
+        if (data.message === "Token is not valid") {
+          const token = await refreshToken(user, setUser);
+          await postCart(token);
+        }
+        if(data.message === 'ok') {
+          return await getCart();
+        }   
+      };
+      checkRequest();
+    } catch (err) {
+      console.log(err.message);
+    }
   };
 
-  useEffect(() => {
-    getProduct();
-    getCart();
-  }, []);
-
   const onDeleteCart = async (id) => {
-    const res = await fetch(`${url}delete-cart`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${user.token}`,
-      },
-      body: JSON.stringify({ id: id }),
-    });
-    const data = await res.json();
-    if (data.message === "Token is not valid")
-      return refreshToken(user, setUser);
-    await getCart();
+    const fetchRequest = async(token) => {
+      const res = await fetch(`${url}delete-cart`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token ? token : user.token}`,
+        },
+        body: JSON.stringify({ id: id }),
+      });
+      const data = await res.json();
+      return data;
+    }
+    const checkRequest = async () => {
+      const data = await fetchRequest();
+      if (data.message === "Token is not valid") {
+        const token = await refreshToken(user, setUser);
+        await fetchRequest(token);
+      }
+      if(data.message === 'ok') {
+        return getCart();
+      }
+    };
+    checkRequest();
   };
 
   // ORDER
   const onOrder = async () => {
-    const postOrder = async () => {
+    const postOrder = async (token) => {
       const res = await fetch(`${url}post-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
+          Authorization: `Bearer ${token ? token : user.token}`,
         },
       });
       const data = await res.json();
-      if (data.message === "Token is not valid")
-        return refreshToken(user, setUser);
-    };
-    await postOrder();
-    await getOrder();
-    await getCart();
+      return data;
+    }
+      const checkRequest = async () => {
+        const data = await postOrder();
+        if (data.message === "Token is not valid") {
+          const token = await refreshToken(user, setUser);
+          await postOrder(token);
+        }
+        if(data.message === 'ok') {
+          getOrder();
+          getCart();
+        }
+      };
+      checkRequest();
   };
 
   const getOrder = async () => {
     try {
-      const res = await fetch(`${url}get-orders`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      const data = await res.json();
-      if (data.message !== "ok") {
-        return;
+      const fetchRequest = async(token) => {
+        const res = await fetch(`${url}get-orders`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token ? token : user.token}` },
+        });
+        const data = await res.json();
+        return data;
       }
-      if (data.message === "Token is not valid")
-        return refreshToken(user, setUser);
-      setOrder(data);
-      // console.log('data-order-item', data)
+      const checkRequest = async () => {
+        const data = await fetchRequest();
+        if (data.message === "Token is not valid") {
+          const token = await refreshToken(user, setUser);
+          await fetchRequest(token);
+        }
+        if(data.message === 'ok') {
+          setOrder(data.orders);
+        }
+      };
+      checkRequest();
     } catch (err) {
       console.log(err);
     }
   };
-  useEffect(() => {
-    getOrder();
-  }, []);
 
   useEffect(() => {
     getProduct();
+  }, []);
+  useEffect(() => {
+    getCart();
+  }, [user]);
+  useEffect(() => {
+    getOrder();
   }, [user]);
 
   // get detail id from home page
@@ -233,18 +276,22 @@ function App() {
   // Edit product
   const onEdit = async (id) => {
     try {
-      console.log("id-edit", id);
-      const res = await fetch(`${url}get-edit/${id}`, {
-        method: "GET",
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      if (!res.message === "ok") {
-        return;
+      const fetchRequest = async(token) => {
+        const res = await fetch(`${url}get-edit/${id}`, {
+          method: "GET",
+          headers: { Authorization: `Bearer ${user.token}` },
+        });
+        const data = await res.json();
+        return data;
       }
-      const data = await res.json();
-      if (data && typeof data !== "string") {
-        setEditProduct(data);
-      }
+      const checkRequest = async () => {
+        const data = await fetchRequest();
+        if (data.message === "Token is not valid") {
+          const token = await refreshToken(user, setUser);
+          await fetchRequest(token);
+        }
+      };
+      checkRequest();
     } catch (err) {
       console.log(err);
     }
@@ -252,7 +299,6 @@ function App() {
 
   // fetch detail product from api
   const fetchDetailProduct = () => {
-    // console.log(Object.keys(detailProduct).length === 0);
     if (Object.keys(detailProduct).length !== 0) {
       return detailProduct.product;
     }
@@ -319,7 +365,7 @@ function App() {
           }
         />
 
-        <Route path="/form/:params" element={<Form />} />
+        <Route path="/form/:params" element={<Form getCart={getCart} />} />
       </Routes>
     </div>
   );

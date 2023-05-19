@@ -24,3 +24,15 @@
   text-align: center;
 
 }
+
+.text-left {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.anchor-link {
+  text-decoration: none;
+  text-align: left;
+  width: fit-content;
+  padding: 2px 4px;
+}

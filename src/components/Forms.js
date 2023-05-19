@@ -92,9 +92,6 @@ const Form = () => {
       console.log(err);
     }
   };
-  console.log(errMessage);
-  console.log(errMessage.email);
-  console.log(errMessage.password);
   return (
     <main>
       <div className="form-center">

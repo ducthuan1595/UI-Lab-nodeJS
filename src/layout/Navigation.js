@@ -14,7 +14,7 @@ const Navigation = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          'Authorization': `Bearer ${user.refreshToken}`,
+          Authorization: `Bearer ${user.refreshToken}`,
         },
       });
       const data = await res.json();
@@ -61,7 +61,7 @@ const Navigation = () => {
         </ul>
         {user ? (
           <div className="user-info">
-            <div className="user-info_item">{user.email}</div>
+            <div className="user-info_item">{user?.user?.email}</div>
             <div className="user-info_item" onClick={handleLogout}>
               Logout
             </div>

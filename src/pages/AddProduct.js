@@ -56,14 +56,22 @@ export default function AddProduct({ onProduct, editProduct, getProduct }) {
       try {
         const id = editProduct?.product?._id;
         product.id = id;
-        const res = await fetch(`${url}edit/${id}`, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-            "Content-type": "application/json",
-          },
-          body: JSON.stringify(product),
-        });
+
+        const formdata = new FormData();
+      formdata.append("title", product.title);
+      formdata.append("price", product.price);
+      formdata.append(
+        "imageUrl", product.imageUrl);
+      formdata.append("description", product.description);
+
+      const request = {
+        method: "POST",
+        headers: {
+          'Authorization': `Bearer ${user.token}`
+        },
+        body: formdata,
+      };
+        const res = await fetch(`${url}edit/${id}`, request);
         const data = await res.json();
         if(data.message !== 'ok') {
           return setMessageError('Value invalid!');

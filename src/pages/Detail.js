@@ -1,5 +1,6 @@
 import { useContext } from "react";
 import { context } from "../store/store";
+import { Buffer } from "buffer";
 
 const Detail = ({ fetchDetailProduct, onCart }) => {
   const product = fetchDetailProduct();
@@ -7,6 +8,9 @@ const Detail = ({ fetchDetailProduct, onCart }) => {
   const handleAddCart = (id) => {
     onCart(id);
   };
+
+  console.log('detail-product', product);
+  // const base64 = Buffer.from(product?.imageUrl).toString('base64');
 
   return (
     <>
@@ -17,7 +21,7 @@ const Detail = ({ fetchDetailProduct, onCart }) => {
               <h1>{product.title}</h1>
             </div>
             <div className="card__image">
-              <img src={product.imageUrl} alt={product.title} />
+              <img src={'data:image/jpeg;base64,' + Buffer.from(product.imageUrl).toString('base64')} alt={product.title} />
             </div>
             <div className="card__content">
               <h1>{product.price}</h1>

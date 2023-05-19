@@ -20,7 +20,7 @@ const Cart = ({ onGetCart, onDelete, onOrder }) => {
     <main>
       <div className="cart">
         {getCart &&
-          getCart.carts.map((cart) => {
+          getCart.carts?.map((cart) => {
             console.log('cart', cart)
             return (
               <div key={cart._id} className="cart-item card">

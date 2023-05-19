@@ -15,6 +15,7 @@ const refreshToken = async( user, setUser ) => {
     localStorage.removeItem('userCurrent');
     localStorage.setItem('userCurrent', JSON.stringify(data));
     setUser(data);
+    return data.token;
   }
 }
 
